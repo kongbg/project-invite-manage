@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import Project from './routes/projects.js';
 import Channel from './routes/channels.js';
 import Invite from './routes/invite.js';
+import User from './routes/user.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,14 +19,10 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 const distPath = path.join(__dirname, '../dist');
 
-// app.use(async (ctx, next) => {
-//   console.log(`${ctx.method} ${ctx.url} - Path: ${ctx.path}`);
-//   await next();
-// });
-
 app.use(cors());
 app.use(bodyParser());
-
+app.use(User.routes());
+app.use(User.allowedMethods());
 app.use(Project.routes());
 app.use(Project.allowedMethods());
 app.use(Channel.routes());

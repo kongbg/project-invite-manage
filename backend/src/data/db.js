@@ -2,6 +2,8 @@ import initSqlJs from 'sql.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,6 +30,14 @@ async function initDatabase() {
     }
     
     db.run(`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL
+      );
+
       CREATE TABLE IF NOT EXISTS projects (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -51,8 +61,23 @@ async function initDatabase() {
 
       CREATE INDEX IF NOT EXISTS idx_channels_projectId ON channels(projectId);
       CREATE INDEX IF NOT EXISTS idx_channels_code ON channels(code);
+      CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
     `);
     
+    // 检查是否存在 admin 用户，如果不存在则创建
+    const adminExists = db.exec('SELECT * FROM users WHERE username = ?', ['admin']);
+    if (!adminExists || adminExists.length === 0 || adminExists[0].values.length === 0) {
+      const adminId = uuidv4();
+      const hashedPassword = hashPassword('admin');
+      const now = Date.now();
+      db.run(
+        'INSERT INTO users (id, username, password, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)',
+        [adminId, 'admin', hashedPassword, now, now]
+      );
+      console.log('Default admin user created');
+    }
+    
+    saveDb();
     console.log('Database initialized successfully');
   } catch (error) {
     console.error('Failed to initialize database:', error);
@@ -114,6 +139,14 @@ const createChannelStmt = stmt('INSERT INTO channels (id, projectId, name, code,
 const updateChannelStmt = stmt('UPDATE channels SET name = ?, paramKey = ?, paramValue = ?, updatedAt = ? WHERE id = ?');
 const deleteChannelStmt = stmt('DELETE FROM channels WHERE id = ?');
 const incrementInviteCountStmt = stmt('UPDATE channels SET inviteCount = inviteCount + 1, updatedAt = ? WHERE code = ?');
+
+const getUserByUsernameStmt = stmt('SELECT * FROM users WHERE username = ?');
+const getUserByIdStmt = stmt('SELECT * FROM users WHERE id = ?');
+const createUserStmt = stmt('INSERT INTO users (id, username, password, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)');
+
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
 
 export const database = {
   getAllProjects() {
@@ -191,6 +224,36 @@ export const database = {
     
     incrementInviteCountStmt.run(Date.now(), code);
     return this.getChannelByCode(code);
+  },
+
+  getUserByUsername(username) {
+    return getUserByUsernameStmt.get(username);
+  },
+
+  getUserById(id) {
+    return getUserByIdStmt.get(id);
+  },
+
+  createUser(username, password) {
+    const id = uuidv4();
+    const hashedPassword = hashPassword(password);
+    const now = Date.now();
+    const user = {
+      id,
+      username,
+      password: hashedPassword,
+      createdAt: now,
+      updatedAt: now
+    };
+    createUserStmt.run(user.id, user.username, user.password, user.createdAt, user.updatedAt);
+    return user;
+  },
+
+  verifyPassword(username, password) {
+    const user = this.getUserByUsername(username);
+    if (!user) return null;
+    const hashedPassword = hashPassword(password);
+    return user.password === hashedPassword ? user : null;
   }
 };
 

@@ -126,7 +126,7 @@ const rules = {
 
 const fetchProject = async () => {
   try {
-    const res = await request.get(`/api/projects/${projectId}`);
+    const res = await request.get(`/projects/${projectId}`);
     project.value = res.data;
   } catch (error) {
     console.error(error);
@@ -136,7 +136,7 @@ const fetchProject = async () => {
 
 const fetchChannels = async () => {
   try {
-    const res = await request.get(`/api/channels/project/${projectId}`);
+    const res = await request.get(`/channels/project/${projectId}`);
     channels.value = res.data;
   } catch (error) {
     console.error(error);
@@ -168,10 +168,10 @@ const handleSubmit = async () => {
   submitting.value = true;
   try {
     if (isEdit.value) {
-      await request.put(`/api/channels/${currentChannelId.value}`, form.value);
+      await request.put(`/channels/${currentChannelId.value}`, form.value);
       ElMessage.success('更新成功');
     } else {
-      await request.post('/api/channels', { ...form.value, projectId });
+      await request.post('/channels', { ...form.value, projectId });
       ElMessage.success('创建成功');
     }
     dialogVisible.value = false;
@@ -190,7 +190,7 @@ const handleDelete = async (channel) => {
       '确认删除',
       { type: 'warning' }
     );
-    await request.delete(`/api/channels/${channel.id}`);
+    await request.delete(`/channels/${channel.id}`);
     ElMessage.success('删除成功');
     fetchChannels();
   } catch (error) {

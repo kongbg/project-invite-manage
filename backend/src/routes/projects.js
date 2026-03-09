@@ -5,7 +5,7 @@ import { database as db } from '../data/db.js';
 const router = new Router({ prefix: '/api/projects' });
 
 router.get('/', (ctx) => {
-  console.log('get all projects');
+  // console.log('get all projects');
   const projects = db.getAllProjects();
   ctx.body = { success: true, data: projects };
 });

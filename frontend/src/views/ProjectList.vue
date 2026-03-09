@@ -77,7 +77,7 @@ const rules = {
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/api/projects');
+    const res = await request.get('/projects');
     projects.value = res.data;
   } catch (error) {
     console.error(error);
@@ -95,7 +95,7 @@ const handleSubmit = async () => {
 
   submitting.value = true;
   try {
-    await request.post('/api/projects', form.value);
+    await request.post('/projects', form.value);
     ElMessage.success('创建成功');
     dialogVisible.value = false;
     fetchProjects();
@@ -113,7 +113,7 @@ const handleDelete = async (project) => {
       '确认删除',
       { type: 'warning' }
     );
-    await request.delete(`/api/projects/${project.id}`);
+    await request.delete(`/projects/${project.id}`);
     ElMessage.success('删除成功');
     fetchProjects();
   } catch (error) {
