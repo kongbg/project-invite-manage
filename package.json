@@ -1,0 +1,20 @@
+{
+  "name": "project-invite-manage",
+  "version": "1.0.0",
+  "description": "项目邀请管理系统 - Koa3 + Vue3 + Element-Plus",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter backend dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build": "pnpm --filter frontend build",
+    "start": "pnpm --filter backend start",
+    "docker:build": "docker build -t project-invite-manage .",
+    "docker:run": "docker run -p 3000:3000 project-invite-manage"
+  },
+  "devDependencies": {
+    "pnpm": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
