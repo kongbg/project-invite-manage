@@ -12,7 +12,10 @@
         <div class="project-info" @click="goToDetail(project.id)">
           <h3>{{ project.name }}</h3>
           <p class="project-url">{{ project.inviteUrl }}</p>
-          <p class="project-time">创建时间: {{ formatTime(project.createdAt) }}</p>
+          <div class="project-meta">
+            <p class="project-time">创建时间: {{ formatTime(project.createdAt) }}</p>
+            <p class="project-count">邀请总数: {{ project.totalInviteCount || 0 }}</p>
+          </div>
         </div>
         <div class="project-actions">
           <el-button type="primary" text @click="goToDetail(project.id)">
@@ -57,6 +60,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { Plus } from '@element-plus/icons-vue';
 import request from '../utils/request.js';
 
 const router = useRouter();
@@ -185,10 +189,23 @@ onMounted(fetchProjects);
   word-break: break-all;
 }
 
+.project-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .project-time {
   color: #909399;
   font-size: 12px;
   margin: 0;
+}
+
+.project-count {
+  color: #67c23a;
+  font-size: 12px;
+  margin: 0;
+  font-weight: 500;
 }
 
 .project-actions {

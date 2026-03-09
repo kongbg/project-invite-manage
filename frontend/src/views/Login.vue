@@ -54,7 +54,7 @@ const handleLogin = async () => {
         if (response.success) {
           localStorage.setItem('token', response.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.user));
-          router.push('/');
+          router.push('/timor');
         } else {
           ElMessage.error(response.message || '登录失败');
         }

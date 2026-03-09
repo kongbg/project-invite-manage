@@ -139,6 +139,7 @@ const createChannelStmt = stmt('INSERT INTO channels (id, projectId, name, code,
 const updateChannelStmt = stmt('UPDATE channels SET name = ?, paramKey = ?, paramValue = ?, updatedAt = ? WHERE id = ?');
 const deleteChannelStmt = stmt('DELETE FROM channels WHERE id = ?');
 const incrementInviteCountStmt = stmt('UPDATE channels SET inviteCount = inviteCount + 1, updatedAt = ? WHERE code = ?');
+const getProjectInviteCountStmt = stmt('SELECT SUM(inviteCount) as totalCount FROM channels WHERE projectId = ?');
 
 const getUserByUsernameStmt = stmt('SELECT * FROM users WHERE username = ?');
 const getUserByIdStmt = stmt('SELECT * FROM users WHERE id = ?');
@@ -150,16 +151,39 @@ function hashPassword(password) {
 
 export const database = {
   getAllProjects() {
-    return getAllProjectsStmt.all();
+    const projects = getAllProjectsStmt.all();
+    return projects.map(project => {
+      const totalCount = this.getProjectInviteCount(project.id);
+      return {
+        ...project,
+        totalInviteCount: totalCount || 0
+      };
+    });
   },
 
   getProjectById(id) {
-    return getProjectByIdStmt.get(id);
+    const project = getProjectByIdStmt.get(id);
+    if (project) {
+      const totalCount = this.getProjectInviteCount(id);
+      return {
+        ...project,
+        totalInviteCount: totalCount || 0
+      };
+    }
+    return null;
+  },
+
+  getProjectInviteCount(projectId) {
+    const result = getProjectInviteCountStmt.get(projectId);
+    return result ? result.totalCount : 0;
   },
 
   createProject(project) {
     createProjectStmt.run(project.id, project.name, project.inviteUrl, project.createdAt, project.updatedAt);
-    return project;
+    return {
+      ...project,
+      totalInviteCount: 0
+    };
   },
 
   updateProject(id, updates) {
